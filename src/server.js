@@ -22,7 +22,7 @@ const wss = new WebSocketServer({ server }); // ws server on top of http server
 // fake db
 const sockets = [];
 
-// this code is always executed whenever someone accesses 
+// this code is always executed whenever someone accesses
 wss.on("connection", (socket) => {
   sockets.push(socket);
   socket["nickname"] = `Anonymous${Math.floor(Math.random() * 100)}`;
@@ -34,9 +34,10 @@ wss.on("connection", (socket) => {
 
     switch (message.type) {
       case "new_message":
-        sockets.forEach((aSocket) =>
-          aSocket.send(`${socket["nickname"]}: ${message.payload}`)
-        );
+        sockets.forEach((aSocket) => {
+          if (aSocket !== socket)
+            aSocket.send(`${socket["nickname"]}: ${message.payload}`);
+        });
         break;
       case "nickname":
         socket["nickname"] = message.payload;
