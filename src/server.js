@@ -17,13 +17,18 @@ const handleListen = () => {
 };
 
 const server = http.createServer(app); // http server
-const wss = new WebSocketServer({ server }); // ws server on top http server
+const wss = new WebSocketServer({ server }); // ws server on top of http server
+
+// fake db
+const sockets = [];
 
 wss.on("connection", (socket) => {
+  sockets.push(socket);
   console.log(`Connected to Browser ✔`);
   socket.on("close", () => console.log(`Disconnected from the Browser ❌`));
-  socket.send(`hello`);
-  socket.on("message", (message) => console.log(message.toString("utf8")));
+  socket.on("message", (message) => {
+    sockets.forEach((aSocket) => aSocket.send(message));
+  });
 });
 
 server.listen(3000, handleListen);
