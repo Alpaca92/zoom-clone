@@ -22,9 +22,10 @@ const wss = new WebSocketServer({ server }); // ws server on top of http server
 // fake db
 const sockets = [];
 
+// this code is always executed whenever someone accesses 
 wss.on("connection", (socket) => {
-  socket["nickname"] = `Anonymous${Math.floor(Math.random() * 100)}`;
   sockets.push(socket);
+  socket["nickname"] = `Anonymous${Math.floor(Math.random() * 100)}`;
 
   console.log(`Connected to Browser ✔`);
   socket.on("close", () => console.log(`Disconnected from the Browser ❌`));
