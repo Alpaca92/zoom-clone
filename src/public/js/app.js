@@ -11,10 +11,10 @@ const makeMessage = (type, payload) => {
 };
 
 socket.addEventListener("open", () => console.log(`Connected to Server ✔`));
-socket.addEventListener("message", async (event) => {
+socket.addEventListener("message", (event) => {
   const li = document.createElement("li");
 
-  li.innerText = await event.data.text();
+  li.innerText = event.data;
   messageList.append(li);
 });
 socket.addEventListener("close", () =>

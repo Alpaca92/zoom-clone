@@ -23,11 +23,24 @@ const wss = new WebSocketServer({ server }); // ws server on top of http server
 const sockets = [];
 
 wss.on("connection", (socket) => {
+  socket["nickname"] = `Anonymous${Math.floor(Math.random() * 100)}`;
   sockets.push(socket);
+
   console.log(`Connected to Browser ✔`);
   socket.on("close", () => console.log(`Disconnected from the Browser ❌`));
-  socket.on("message", (message) => {
-    sockets.forEach((aSocket) => aSocket.send(message));
+  socket.on("message", (msg) => {
+    const message = JSON.parse(msg);
+
+    switch (message.type) {
+      case "new_message":
+        sockets.forEach((aSocket) =>
+          aSocket.send(`${socket["nickname"]}: ${message.payload}`)
+        );
+        break;
+      case "nickname":
+        socket["nickname"] = message.payload;
+        break;
+    }
   });
 });
 
