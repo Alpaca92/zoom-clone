@@ -9,3 +9,5 @@
 ✔ Express.js
 
 ✔ Websockets
+
+✔ Socket.io
