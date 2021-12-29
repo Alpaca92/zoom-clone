@@ -16,10 +16,24 @@ const httpServer = http.createServer(app); // http server
 const wsServer = new Server(httpServer); // socket.io server on top of http server
 
 wsServer.on("connection", (socket) => {
+  socket["nickname"] = `Anonymous_${Math.floor(Math.random() * 10000)}`;
+
+  socket.onAny((event) => console.log(`socket event: ${event}`));
   socket.on("enter_room", (roomName, done) => {
-    console.log(roomName);
+    socket.join(roomName);
+    done();
+    socket.to(roomName).emit("welcome", socket["nickname"]);
+  });
+  socket.on("disconnecting", () => {
+    socket.rooms.forEach((room) =>
+      socket.to(room).emit("bye", socket["nickname"])
+    );
+  });
+  socket.on("new_message", (message, roomName, done) => {
+    socket.to(roomName).emit("new_message", socket["nickname"], message);
     done();
   });
+  socket.on("nickname", (nickname) => (socket["nickname"] = nickname));
 });
 
 httpServer.listen(3000, () =>
