@@ -53,7 +53,9 @@ welcomeForm.addEventListener("submit", (event) => {
   });
 });
 
-socket.on("welcome", (nickname) => {
+socket.on("welcome", (nickname, newCount) => {
+  const h3 = room.querySelector("h3");
+  h3.innerText = `Room name is : ${roomName} (${newCount})`;
   addMessage(`${nickname} joined.`);
 });
 
@@ -61,6 +63,21 @@ socket.on("new_message", (nickname, msg) => {
   addMessage(`${nickname}: ${msg}`);
 });
 
-socket.on("bye", (nickname) => {
+socket.on("bye", (nickname, newCount) => {
+  const h3 = room.querySelector("h3");
+  h3.innerText = `Room name is : ${roomName} (${newCount})`;
   addMessage(`${nickname} left.`);
+});
+
+socket.on("room_change", (rooms) => {
+  const roomList = welcome.querySelector("ul");
+
+  roomList.innerHTML = "";
+  if (!rooms) return;
+
+  rooms.forEach((room) => {
+    const li = document.createElement("li");
+    li.innerText = room;
+    roomList.append(li);
+  });
 });

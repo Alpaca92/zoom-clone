@@ -15,19 +15,55 @@ app.get("/*", (_, res) => res.redirect("/"));
 const httpServer = http.createServer(app); // http server
 const wsServer = new Server(httpServer); // socket.io server on top of http server
 
+function getPublicRooms() {
+  const {
+    sockets: {
+      adapter: { sids, rooms },
+    },
+  } = wsServer;
+
+  const publicRooms = [];
+
+  rooms.forEach((_, key) => {
+    if (sids.get(key) === undefined) publicRooms.push(key);
+  });
+
+  return publicRooms;
+}
+
+function countRoom(roomName) {
+  const {
+    sockets: {
+      adapter: { rooms },
+    },
+  } = wsServer;
+
+  return rooms.get(roomName)?.size;
+}
+
 wsServer.on("connection", (socket) => {
   socket["nickname"] = `Anonymous_${Math.floor(Math.random() * 10000)}`;
+  wsServer.sockets.emit("room_change", getPublicRooms());
 
-  socket.onAny((event) => console.log(`socket event: ${event}`));
+  socket.onAny((event) => {
+    console.log(wsServer.sockets.adapter);
+    console.log(`socket event: ${event}`);
+  });
   socket.on("enter_room", (roomName, done) => {
     socket.join(roomName);
     done();
-    socket.to(roomName).emit("welcome", socket["nickname"]);
+    socket
+      .to(roomName)
+      .emit("welcome", socket["nickname"], countRoom(roomName));
+    wsServer.sockets.emit("room_change", getPublicRooms());
   });
   socket.on("disconnecting", () => {
     socket.rooms.forEach((room) =>
-      socket.to(room).emit("bye", socket["nickname"])
+      socket.to(room).emit("bye", socket["nickname"], countRoom(room) - 1)
     );
+  });
+  socket.on("disconnect", () => {
+    wsServer.sockets.emit("room_change", getPublicRooms());
   });
   socket.on("new_message", (message, roomName, done) => {
     socket.to(roomName).emit("new_message", socket["nickname"], message);
